@@ -15,7 +15,6 @@ export default function GenerateQRPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [origin, setOrigin] = useState('');
 
-  // ดึง origin ฝั่ง Client ให้ปลอดภัยจาก SSR
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setOrigin(window.location.origin);
@@ -42,7 +41,6 @@ export default function GenerateQRPage() {
     setLoading(true);
 
     try {
-      // 1. เช็คว่ามี session ที่ status = 'open' อยู่แล้วหรือไม่
       const { data: existing, error: checkError } = await supabase
         .from('sessions')
         .select('*')
@@ -58,7 +56,6 @@ export default function GenerateQRPage() {
         return;
       }
 
-      // 2. ถ้าไม่มี ให้สร้าง session ใหม่
       const { error: insertError } = await supabase.from('sessions').insert([
         {
           table_number: tableNum,
@@ -70,7 +67,6 @@ export default function GenerateQRPage() {
 
       if (insertError) throw insertError;
 
-      // 3. สร้าง URL และ QR Code
       const baseUrl = origin || (typeof window !== 'undefined' ? window.location.origin : '');
       const targetUrl = `${baseUrl}/order/${tableNum}`;
       const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
@@ -143,7 +139,6 @@ export default function GenerateQRPage() {
           </div>
         )}
 
-        {/* 1. กล่องเตือนเมื่อมี Session เปิดค้างอยู่ */}
         {existingSession && (
           <div className="mb-6 p-5 bg-amber-500/10 border-2 border-amber-500/40 rounded-2xl text-amber-200">
             <h2 className="text-lg font-bold text-amber-400 flex items-center gap-2">
@@ -162,15 +157,13 @@ export default function GenerateQRPage() {
           </div>
         )}
 
-        {/* 2. แสดงผลลัพธ์ QR Code เมื่อเปิดโต๊ะสำเร็จ */}
         {qrUrl ? (
-          <div className="text-center space-y-5 animate-fadeIn">
+          <div className="text-center space-y-5">
             <div className="p-4 bg-white rounded-2xl inline-block shadow-lg">
               <img
                 src={qrUrl}
                 alt={`QR Code โต๊ะ ${createdTable}`}
                 className="w-64 h-64 mx-auto block"
-                onError={() => setErrorMsg('ไม่สามารถโหลดรูป QR Code ได้ กรุณาลองใหม่อีกครั้ง')}
               />
             </div>
 
@@ -197,7 +190,6 @@ export default function GenerateQRPage() {
             </div>
           </div>
         ) : (
-          /* 3. ฟอร์มกรอกเลขโต๊ะปกติ */
           <form onSubmit={handleOpenTable} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-[#8A9A90] mb-2">
@@ -229,7 +221,6 @@ export default function GenerateQRPage() {
         )}
       </div>
 
-      {/* Modal ยืนยันปิดออเดอร์เดิม */}
       {showConfirmModal && existingSession && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#181D1A] border border-red-500/40 rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl">
