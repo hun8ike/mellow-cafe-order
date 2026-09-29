@@ -1,0 +1,33 @@
+:root{--bg:#e9efe6;--card:#f7faf5;--ink:#23302a;--muted:#5f6e64;--line:#cbd6c8;--accent:#5b3a4a;--butter:#f2c94c;--ok:#3d7a52;--warn:#b5482f}
+@media(prefers-color-scheme:dark){:root{--bg:#18211c;--card:#212c25;--ink:#e6eee6;--muted:#9fb0a3;--line:#33443a;--accent:#e8b4c8}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,"Noto Sans Thai",sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+h1{margin:0;font-size:22px}
+nav{display:flex;gap:8px}
+nav a{border:1px solid var(--line);color:var(--ink);padding:6px 14px;border-radius:99px;text-decoration:none}
+main{max-width:960px;margin:0 auto;padding:20px 20px 240px}
+h2{font-size:18px;margin:24px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.item,.order,.stats div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.item{display:flex;flex-direction:column;gap:4px}
+.item small{color:var(--muted)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:8px}
+.order{margin-bottom:10px}
+button{font:inherit;cursor:pointer}
+.pri{background:var(--accent);color:var(--bg);border:0;border-radius:10px;padding:8px 14px;font-weight:500}
+.pri:disabled{opacity:.5}
+.sm{border:1px solid var(--line);background:none;color:var(--ink);border-radius:8px;padding:4px 10px}
+.cart{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--butter);padding:12px 20px}
+.cart .in{max-width:960px;margin:0 auto}
+.cart ul{list-style:none;margin:0 0 8px;padding:0;max-height:22vh;overflow:auto}
+.cart li{display:flex;justify-content:space-between;align-items:center;padding:2px 0}
+input{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);flex:1;min-width:0}
+.tag{font-size:13px;padding:2px 10px;border-radius:99px;background:var(--butter);color:#3a2f00}
+.tag.paid{background:var(--ok);color:#fff}
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.stats div{flex:1;min-width:140px}
+.stats b{font-size:24px;display:block}
+.alert{color:var(--warn)}
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:10px;z-index:9}
+:focus-visible{outline:3px solid var(--butter);outline-offset:2px}
