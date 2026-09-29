@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 export default function GenerateQRPage() {
@@ -8,19 +8,26 @@ export default function GenerateQRPage() {
   const [existingSession, setExistingSession] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [qrUrl, setQrUrl] = useState('');
+  const [currentOrderUrl, setCurrentOrderUrl] = useState('');
   const [createdTable, setCreatedTable] = useState('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [origin, setOrigin] = useState('');
 
-  // คำนวณระยะเวลาเป็นนาที
+  // ดึง origin ฝั่ง Client ให้ปลอดภัยจาก SSR
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOrigin(window.location.origin);
+    }
+  }, []);
+
   const calculateMinutes = (createdAt) => {
     if (!createdAt) return 0;
     const diffMs = new Date() - new Date(createdAt);
     return Math.floor(diffMs / (1000 * 60));
   };
 
-  // กดปุ่ม "เปิดโต๊ะ"
   const handleOpenTable = async (e) => {
     e.preventDefault();
     setErrorMsg('');
@@ -46,7 +53,6 @@ export default function GenerateQRPage() {
       if (checkError) throw checkError;
 
       if (existing) {
-        // พบ session ค้างอยู่ -> แสดงกล่องเตือน
         setExistingSession(existing);
         setLoading(false);
         return;
@@ -65,13 +71,14 @@ export default function GenerateQRPage() {
       if (insertError) throw insertError;
 
       // 3. สร้าง URL และ QR Code
-      const origin = window.location.origin;
-      const targetUrl = `${origin}/order/${tableNum}`;
+      const baseUrl = origin || (typeof window !== 'undefined' ? window.location.origin : '');
+      const targetUrl = `${baseUrl}/order/${tableNum}`;
       const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
         targetUrl
       )}`;
 
       setQrUrl(qrApiUrl);
+      setCurrentOrderUrl(targetUrl);
       setCreatedTable(tableNum);
     } catch (err) {
       console.error('Error opening table:', err);
@@ -81,7 +88,6 @@ export default function GenerateQRPage() {
     }
   };
 
-  // ยืนยันปิดออเดอร์เดิม
   const handleCloseExistingSession = async () => {
     if (!existingSession) return;
     setLoading(true);
@@ -95,7 +101,6 @@ export default function GenerateQRPage() {
 
       if (error) throw error;
 
-      // ปิดสำเร็จ -> ล้างสถานะเตือน เพื่อให้พนักงานกดเปิดโต๊ะใหม่อีกครั้ง
       setShowConfirmModal(false);
       setExistingSession(null);
     } catch (err) {
@@ -106,28 +111,23 @@ export default function GenerateQRPage() {
     }
   };
 
-  // คัดลอกลิงก์
   const handleCopyLink = () => {
-    const origin = window.location.origin;
-    const targetUrl = `${origin}/order/${createdTable}`;
-    navigator.clipboard.writeText(targetUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (currentOrderUrl) {
+      navigator.clipboard.writeText(currentOrderUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
-  // ล้างฟอร์มเพื่อเปิดโต๊ะใหม่
   const handleReset = () => {
     setTableNumber('');
     setQrUrl('');
+    setCurrentOrderUrl('');
     setCreatedTable('');
     setExistingSession(null);
     setShowConfirmModal(false);
     setErrorMsg('');
   };
-
-  const currentOrderUrl = createdTable
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/order/${createdTable}`
-    : '';
 
   return (
     <div className="min-h-screen bg-[#121614] text-[#E0E6E2] p-4 sm:p-6 font-sans flex items-center justify-center">
@@ -169,7 +169,8 @@ export default function GenerateQRPage() {
               <img
                 src={qrUrl}
                 alt={`QR Code โต๊ะ ${createdTable}`}
-                className="w-64 h-64 mx-auto"
+                className="w-64 h-64 mx-auto block"
+                onError={() => setErrorMsg('ไม่สามารถโหลดรูป QR Code ได้ กรุณาลองใหม่อีกครั้ง')}
               />
             </div>
 
@@ -245,10 +246,6 @@ export default function GenerateQRPage() {
                 </span>
               </p>
             </div>
-
-            <p className="text-xs text-[#8A9A90]">
-              หากยืนยัน Session เก่าจะถูกปิดทันที และคุณจะสามารถกด "เปิดโต๊ะ" เพื่อสร้างรอบใหม่ได้
-            </p>
 
             <div className="flex gap-3 pt-2">
               <button
